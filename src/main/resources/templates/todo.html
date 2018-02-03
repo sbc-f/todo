@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+	<h3>TODOリスト</h3>
+	<table border="1" cellspacing="0">
+		<tr>
+			<th>完了</th>
+			<th>メモ</th>
+			<th>処理</th>
+		</tr>
+		<tr th:each="todo : ${todoList}" th:id="'tr_' + ${todo.id}">
+			<td><input class="chkDone" type="checkbox" th:attr="checked=${todo.doneFlg}" /></td>
+			<td th:text="${todo.memo}">メモ内容</td>
+			<td><button class="btnDel">×</button></td>
+		</tr>
+		<tr>
+			<td>&nbsp;</td>
+			<td><input type="text" id="memo" /></td>
+			<td><button class="btnAdd">追加</button></td>
+		</tr>
+	</table>
+
+	<!-- 送信フォーム -->
+	<form th:action="@{/add}" method="POST" name="frmSubmit">
+		<input type="hidden" name="memo" />
+	</form>
+
+	<br/><br/>
+	<h5>コンソール</h5>
+	<div id="result"></div>
+
+<!-- ============================================ -->
+<!-- スクリプト -->
+<!-- ============================================ -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script>
+$(function(){
+
+	// 初期処理
+	var _ctx = "/todo";
+
+	// 完了している行を灰色にする
+	$(".chkDone").each(function(){
+		if($(this).attr("checked") == "checked"){
+			$(this).attr("disabled", "disabled");
+			$parentTr = $(this).parent().parent();
+			$parentTr.addClass("done");
+		}
+	});
+
+
+	/**
+	 * メモ追加
+	 */
+	isSend = false;
+	$(".btnAdd").on("click", function(){
+		addResult("追加ボタンクリック");
+		if(isSend)return;
+		isSend = true;
+		frmSubmit.memo.value = $("#memo").val();
+		frmSubmit.submit();
+	});
+
+	/**
+	 * メモ削除
+	 */
+	$(".btnDel").on("click", function(){
+		addResult("削除ボタンクリック");
+		var $pTr = $(this).parent().parent();
+		var id = getId($pTr);
+
+		$.ajax({
+			url: _ctx + "/del",
+			type: "POST",
+			data: {
+				id: id
+			},
+			dataType: "text",
+			success: function(data){
+				addResult("削除成功、ID：" + id);
+				$pTr.remove();
+			},
+			error: function(data){
+				addResult("削除失敗、ID：" + id);
+			}
+		});
+	})
+
+	/**
+	 * 完了状態変更
+	 */
+	$(".chkDone").on("click", function(){
+		addResult("完了クリック");
+
+		var $pTr = $(this).parent().parent();
+		var id = getId($pTr);
+
+		$.ajax({
+			url: _ctx + "/updDoneFlg",
+			type: "POST",
+			data: {
+				id: id
+			},
+			dataType: "text",
+			success: function(data){
+				addResult("完了成功、ID：" + id);
+				$pTr.addClass("done");
+			},
+			error: function(data){
+				addResult("完了失敗、ID：" + id);
+			}
+		});
+		$(this).attr("disabled", "disabled");
+
+	})
+
+	var i = 0;
+	function addResult(msg){
+		var base = $("#result").html();
+		$("#result").html(++i + ":" + msg + "<br/>" + base);
+	};
+
+	function getId($p){
+		return $p.attr("id").split("_")[1];
+	}
+});
+
+</script>
+
+<!-- ============================================ -->
+<!-- スタイル -->
+<!-- ============================================ -->
+<style>
+	th {
+		background-color: skyblue;
+	}
+
+	input{
+		width:  30px;
+		height: 30px;
+	}
+
+	button{
+		width:  50px;
+		height: 30px;
+		font-size: 15px;
+	}
+
+	input[type="text"] {
+		width: 300px;
+	}
+
+	#result{
+		width:  500px;
+		height: 150px;
+		border: 1px solid black;
+		overflow: auto;
+	}
+
+	.done{
+		background-color: gray;
+	}
+</style>
+
+</body>
+</html>

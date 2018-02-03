@@ -1,0 +1,20 @@
+server:
+  contextPath: /todo
+spring:
+  datasource:
+    url: jdbc:postgresql://■■■URL■■■:5432/■■■DBName■■■?ssl=true&sslfactory=org.postgresql.ssl.NonValidatingFactory
+    driverClassName: org.postgresql.Driver
+    username: ■■■ユーザ■■■
+    password: ■■■パスワード■■■
+
+# http://doma.seasar.org/apidocs/index.html?org/seasar/doma/jdbc/
+doma:
+  dialect: postgres
+  sql-file-repository: no_cache
+
+# プーリング
+spring.datasource.tomcat:
+    maxActive: 15
+    maxIdle: 10
+    minIdle: 5
+    initialSize: 2
